@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        #gameCanvas {
+            border: 2px solid white;
+            background-color: black;
+        }
+        #startScreen {
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="startScreen">
+        <h1>Pong Game</h1>
+        <p>Instructions: Use the mouse scroll wheel to move the paddle up and down.</p>
+        <p>Select Difficulty:</p>
+        <button onclick="startGame('easy')">Easy</button>
+        <button onclick="startGame('medium')">Medium</button>
+        <button onclick="startGame('hard')">Hard</button>
+    </div>
+    <canvas id="gameCanvas" width="800" height="400" style="display: none;"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let playerPaddleY = canvas.height / 2 - 50;
+        let computerPaddleY = canvas.height / 2 - 50;
+        let ballX = canvas.width / 2;
+        let ballY = canvas.height / 2;
+        let ballSpeedX = 5;
+        let ballSpeedY = 5;
+        let playerScore = 0;
+        let computerScore = 0;
+        let computerLevel = 'easy';
+
+        function startGame(level) {
+            document.getElementById('startScreen').style.display = 'none';
+            canvas.style.display = 'block';
+            computerLevel = level;
+            gameLoop();
+        }
+
+        function resetBall() {
+            ballX = canvas.width / 2;
+            ballY = canvas.height / 2;
+            ballSpeedX = -ballSpeedX;
+        }
+
+        function updateComputerPaddle() {
+            let speed;
+            if (computerLevel === 'easy') speed = 2;
+            else if (computerLevel === 'medium') speed = 4;
+            else speed = 6;
+
+            if (computerPaddleY + 50 < ballY) {
+                computerPaddleY += speed;
+            } else if (computerPaddleY + 50 > ballY) {
+                computerPaddleY -= speed;
+            }
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPaddle(10, playerPaddleY);
+            drawPaddle(canvas.width - 20, computerPaddleY);
+            drawBall();
+            drawScores();
+
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+
+            if (ballY < 0 || ballY > canvas.height) ballSpeedY = -ballSpeedY;
+
+            if (ballX < 30 && ballY > playerPaddleY && ballY < playerPaddleY + 100) ballSpeedX = -ballSpeedX;
+            else if (ballX > canvas.width - 30 && ballY > computerPaddleY && ballY < computerPaddleY + 100) ballSpeedX = -ballSpeedX;
+            else if (ballX < 0) {
+                computerScore++;
+                resetBall();
+            } else if (ballX > canvas.width) {
+                playerScore++;
+                resetBall();
+            }
+
+            updateComputerPaddle();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function drawPaddle(x, y) {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x, y, 10, 100);
+        }
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, 10, 0, Math.PI * 2);
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawScores() {
+            ctx.font = "20px Arial";
+            ctx.fillText("Player: " + playerScore, 50, 20);
+            ctx.fillText("Computer: " + computerScore, canvas.width - 150, 20);
+        }
+
+        window.addEventListener('wheel', (event) => {
+            const deltaY = event.deltaY > 0 ? 10 : -10;
+            playerPaddleY = Math.max(Math.min(playerPaddleY + deltaY, canvas.height - 100), 0);
+        });
+    </script>
+</body>
+</html>
